@@ -154,6 +154,20 @@ public class CardServiceImpl implements CardService {
                 fromCard.getId(), toCard.getId(), dto.amount(), user.getId());
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public CardDto getUserCardById(UUID cardId, String username) {
+        User user = findUserByUsernameOrThrow(username);
+        Card card = findCardByIdOrThrow(cardId);
+
+        if (!card.getOwner().getId().equals(user.getId())) {
+            log.warn("Попытка просмотра чужой карты. cardId={}, userId={}", cardId, user.getId());
+            throw new ConflictException("Просмотреть можно только свою карту.");
+        }
+
+        return cardMapper.toDto(card);
+    }
+
     private Card findCardByIdOrThrow(UUID cardId) {
         return cardRepository.findById(cardId).orElseThrow(() -> {
             log.warn("Карта с id={} не найдена.", cardId);

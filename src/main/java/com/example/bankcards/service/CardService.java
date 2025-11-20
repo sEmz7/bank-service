@@ -5,7 +5,6 @@ import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.dto.card.CardTransferDto;
 import com.example.bankcards.util.CardStatus;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -21,4 +20,5 @@ public interface CardService {
                                   LocalDateTime expiryDateTo, String last4);
     CardDto blockCardRequest(UUID cardId, String username);
     void transfer(String username, CardTransferDto dto);
+    CardDto getUserCardById(UUID cardId, String username);
 }

@@ -51,4 +51,10 @@ public class UserCardController {
                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         cardService.transfer(userDetails.getUsername(), dto);
     }
+
+    @GetMapping("{cardId}")
+    public CardDto getUserCardById(@PathVariable("cardId") UUID cardId,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return cardService.getUserCardById(cardId, userDetails.getUsername());
+    }
 }
