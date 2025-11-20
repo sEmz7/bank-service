@@ -1,8 +1,8 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.UserCredentialsDto;
-import com.example.bankcards.dto.UserDto;
-import com.example.bankcards.service.UserService;
+import com.example.bankcards.dto.jwt.JwtAuthDto;
+import com.example.bankcards.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,14 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/users")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
+public class AuthController {
+    private final AuthService authService;
 
-    @PostMapping
-    public UserDto create(@Valid @RequestBody UserCredentialsDto dto) {
-        return userService.create(dto);
+    @PostMapping("/login")
+    public JwtAuthDto logIn(@Valid @RequestBody UserCredentialsDto dto) {
+        return authService.logIn(dto);
     }
-
 }

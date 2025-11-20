@@ -1,6 +1,6 @@
 package com.example.bankcards.util;
 
 public enum UserRole {
-    USER,
-    ADMIN
+    ROLE_ADMIN,
+    ROLE_USER
 }
