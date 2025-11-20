@@ -1,6 +1,6 @@
 package com.example.bankcards.service.impl;
 
-import com.example.bankcards.dto.UserCredentialsDto;
+import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.jwt.JwtAuthDto;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.AuthException;
@@ -23,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     @Override
     public JwtAuthDto logIn(UserCredentialsDto dto) {
         User user = userRepository.findByUsername(dto.username()).orElseThrow(() -> {

@@ -1,7 +1,7 @@
-package com.example.bankcards.util;
+package com.example.bankcards.util.mapper;
 
-import com.example.bankcards.dto.UserCredentialsDto;
-import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.dto.user.UserCredentialsDto;
+import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.entity.User;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

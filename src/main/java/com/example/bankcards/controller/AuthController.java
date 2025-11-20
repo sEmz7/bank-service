@@ -1,6 +1,6 @@
 package com.example.bankcards.controller;
 
-import com.example.bankcards.dto.UserCredentialsDto;
+import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.jwt.JwtAuthDto;
 import com.example.bankcards.service.AuthService;
 import jakarta.validation.Valid;
