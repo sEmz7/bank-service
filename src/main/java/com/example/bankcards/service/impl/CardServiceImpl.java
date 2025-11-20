@@ -59,4 +59,9 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
         return cardMapper.toDto(card);
     }
+
+    @Override
+    public void deleteCard(UUID cardId) {
+        cardRepository.deleteById(cardId);
+    }
 }

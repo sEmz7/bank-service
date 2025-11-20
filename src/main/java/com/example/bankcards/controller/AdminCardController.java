@@ -26,4 +26,10 @@ public class AdminCardController {
     public CardDto updateCardStatus(@PathVariable("cardId") UUID cardId, @Valid @RequestBody CardNewStatusDto dto) {
         return cardService.updateCardStatus(cardId, dto);
     }
+
+    @DeleteMapping("/{cardId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCard(@PathVariable("cardId") UUID cardId) {
+        cardService.deleteCard(cardId);
+    }
 }

@@ -10,4 +10,6 @@ public interface CardService {
     CardDto createCardForUser(UUID userId);
 
     CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto);
+
+    void deleteCard(UUID cardId);
 }
