@@ -1,4 +1,4 @@
-package com.example.bankcards.controller;
+package com.example.bankcards.controller.admin;
 
 import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.user.UserDto;

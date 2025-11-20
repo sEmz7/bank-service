@@ -1,4 +1,4 @@
-package com.example.bankcards.controller;
+package com.example.bankcards.controller.auth;
 
 import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.jwt.JwtAuthDto;

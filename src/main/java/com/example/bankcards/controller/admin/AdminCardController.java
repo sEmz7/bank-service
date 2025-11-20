@@ -1,4 +1,4 @@
-package com.example.bankcards.controller;
+package com.example.bankcards.controller.admin;
 
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;

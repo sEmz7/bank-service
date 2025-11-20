@@ -35,10 +35,8 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardDto createCardForUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> {
-            log.warn("Пользователь с id={} не найден.", userId);
-            return new NotFoundException("Пользователь с id=" + userId + " не найден.");
-        });
+        User user = findUserByIdOrThrow(userId);
+
         String cardNumber = CardNumberGenerator.generateCardNumber();
         Card card = new Card();
         card.setOwner(user);
@@ -80,10 +78,32 @@ public class CardServiceImpl implements CardService {
         return cards.stream().map(cardMapper::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
+                                         LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> {
+            log.warn("Пользователь с username={} не найден.", username);
+            return new NotFoundException("Пользователь не найден.");
+        });
+        Pageable pageable = PageRequest.of(page, size, Sort.by("expiryDate").ascending());
+
+        List<Card> userCards = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
+                expiryDateTo, last4).getContent();
+        return userCards.stream().map(cardMapper::toDto).toList();
+    }
+
     private Card findCardByIdOrThrow(UUID cardId) {
         return cardRepository.findById(cardId).orElseThrow(() -> {
             log.warn("Карта с id={} не найдена.", cardId);
             return new NotFoundException("Карта не найдена.");
+        });
+    }
+
+    private User findUserByIdOrThrow(UUID userId) {
+        return userRepository.findById(userId).orElseThrow(() -> {
+            log.warn("Пользователь с id={} не найден.", userId);
+            return new NotFoundException("Пользователь с id=" + userId + " не найден.");
         });
     }
 }
