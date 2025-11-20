@@ -1,6 +1,6 @@
 package com.example.bankcards.util.mapper;
 
-import com.example.bankcards.dto.user.UserCredentialsDto;
+import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.entity.User;
 import org.mapstruct.Context;
@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public interface UserMapper {
 
     @Mapping(target = "password", expression = "java(passwordEncoder.encode(dto.password()))")
-    User toEntity(UserCredentialsDto dto, @Context PasswordEncoder passwordEncoder);
+    User toEntity(UserCreateDto dto, @Context PasswordEncoder passwordEncoder);
 
     UserDto toDto(User entity);
 }

@@ -1,5 +1,6 @@
 package com.example.bankcards.service.impl;
 
+import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.entity.User;
@@ -28,13 +29,12 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto create(UserCredentialsDto dto) {
+    public UserDto create(UserCreateDto dto) {
         if (userRepository.findByUsername(dto.username()).isPresent()) {
             log.warn("Пользователь с username = {} уже существует.", dto.username());
             throw new ConflictException("Пользователь с username = " + dto.username() + " уже существует.");
         }
         User user = userMapper.toEntity(dto, passwordEncoder);
-        user.setRole(UserRole.ROLE_USER);
         User savedUser = userRepository.save(user);
         log.debug("Пользователь с id={} сохранен.", savedUser.getId());
 

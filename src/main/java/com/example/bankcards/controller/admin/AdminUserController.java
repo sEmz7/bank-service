@@ -1,6 +1,6 @@
 package com.example.bankcards.controller.admin;
 
-import com.example.bankcards.dto.user.UserCredentialsDto;
+import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.service.UserService;
 import jakarta.validation.Valid;
@@ -22,7 +22,7 @@ public class AdminUserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@Valid @RequestBody UserCredentialsDto dto) {
+    public UserDto create(@Valid @RequestBody UserCreateDto dto) {
         return userService.create(dto);
     }
 
