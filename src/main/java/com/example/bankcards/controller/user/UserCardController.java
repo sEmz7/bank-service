@@ -7,13 +7,11 @@ import com.example.bankcards.util.CardStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users/cards")
@@ -34,5 +32,11 @@ public class UserCardController {
                                   @RequestParam(value = "last4", required = false) String last4) {
         return cardService.getAllUserCards(userDetails.getUsername(), page, size,
                 status, expiryDateFrom, expiryDateTo, last4);
+    }
+
+    @PatchMapping("/{cardId}/block")
+    CardDto blockCardRequest(@PathVariable("cardId") UUID cardId,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return cardService.blockCardRequest(cardId, userDetails.getUsername());
     }
 }

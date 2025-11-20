@@ -17,4 +17,5 @@ public interface CardService {
 
     List<CardDto> getAllUserCards(String username, int page, int size, CardStatus status, LocalDateTime expiryDateFrom,
                                   LocalDateTime expiryDateTo, String last4);
+    CardDto blockCardRequest(UUID cardId, String username);
 }

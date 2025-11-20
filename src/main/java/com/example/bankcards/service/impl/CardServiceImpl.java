@@ -4,6 +4,7 @@ import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
@@ -47,6 +48,7 @@ public class CardServiceImpl implements CardService {
         card.setBalance(BigDecimal.ZERO);
 
         Card saved = cardRepository.save(card);
+        log.debug("Карта создана. cardId={}", card.getId());
         return cardMapper.toDto(saved);
     }
 
@@ -56,6 +58,7 @@ public class CardServiceImpl implements CardService {
         card.setStatus(dto.status());
 
         cardRepository.save(card);
+        log.debug("Изменен статус карты. cardId={}", cardId);
         return cardMapper.toDto(card);
     }
 
@@ -82,15 +85,28 @@ public class CardServiceImpl implements CardService {
     @Override
     public List<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
                                          LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> {
-            log.warn("Пользователь с username={} не найден.", username);
-            return new NotFoundException("Пользователь не найден.");
-        });
+        User user = findUserByUsernameOrThrow(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("expiryDate").ascending());
 
         List<Card> userCards = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
                 expiryDateTo, last4).getContent();
         return userCards.stream().map(cardMapper::toDto).toList();
+    }
+
+    @Override
+    public CardDto blockCardRequest(UUID cardId, String username) {
+        User user = findUserByUsernameOrThrow(username);
+        Card card = findCardByIdOrThrow(cardId);
+
+        if(!card.getOwner().getId().equals(user.getId())) {
+            log.warn("Блокировать карту может только владелец. cardId={}, userId={}", cardId, user.getId());
+            throw new ConflictException("Блокировать карту может только владелец.");
+        }
+
+        card.setStatus(CardStatus.BLOCK_PENDING);
+        cardRepository.save(card);
+        log.debug("Пользователь запросил блокировку карты. userId={}, cardId={}", user.getId(), cardId);
+        return cardMapper.toDto(card);
     }
 
     private Card findCardByIdOrThrow(UUID cardId) {
@@ -104,6 +120,13 @@ public class CardServiceImpl implements CardService {
         return userRepository.findById(userId).orElseThrow(() -> {
             log.warn("Пользователь с id={} не найден.", userId);
             return new NotFoundException("Пользователь с id=" + userId + " не найден.");
+        });
+    }
+
+    private User findUserByUsernameOrThrow(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> {
+            log.warn("Пользователь с username={} не найден.", username);
+            return new NotFoundException("Пользователь не найден.");
         });
     }
 }
