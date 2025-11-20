@@ -1,6 +1,7 @@
 package com.example.bankcards.service.impl;
 
 import com.example.bankcards.dto.card.CardDto;
+import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.NotFoundException;
@@ -45,5 +46,17 @@ public class CardServiceImpl implements CardService {
 
         Card saved = cardRepository.save(card);
         return cardMapper.toDto(saved);
+    }
+
+    @Override
+    public CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto) {
+        Card card = cardRepository.findById(cardId).orElseThrow(() -> {
+            log.warn("Карта с id={} не найдена.", cardId);
+            return new NotFoundException("Карта не найдена.");
+        });
+        card.setStatus(dto.status());
+
+        cardRepository.save(card);
+        return cardMapper.toDto(card);
     }
 }

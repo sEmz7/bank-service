@@ -1,7 +1,9 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.card.CardDto;
+import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.service.CardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,12 @@ public class AdminCardController {
 
     @PostMapping("/{userId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CardDto createCardForUser(@PathVariable UUID userId) {
+    public CardDto createCardForUser(@PathVariable("userId") UUID userId) {
         return cardService.createCardForUser(userId);
+    }
+
+    @PatchMapping("/{cardId}")
+    public CardDto updateCardStatus(@PathVariable("cardId") UUID cardId, @Valid @RequestBody CardNewStatusDto dto) {
+        return cardService.updateCardStatus(cardId, dto);
     }
 }
