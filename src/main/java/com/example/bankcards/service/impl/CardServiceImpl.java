@@ -50,10 +50,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto) {
-        Card card = cardRepository.findById(cardId).orElseThrow(() -> {
-            log.warn("Карта с id={} не найдена.", cardId);
-            return new NotFoundException("Карта не найдена.");
-        });
+        Card card = findCardByIdOrThrow(cardId);
         card.setStatus(dto.status());
 
         cardRepository.save(card);
@@ -63,5 +60,17 @@ public class CardServiceImpl implements CardService {
     @Override
     public void deleteCard(UUID cardId) {
         cardRepository.deleteById(cardId);
+    }
+
+    @Override
+    public CardDto getById(UUID cardId) {
+        return cardMapper.toDto(findCardByIdOrThrow(cardId));
+    }
+
+    private Card findCardByIdOrThrow(UUID cardId) {
+        return cardRepository.findById(cardId).orElseThrow(() -> {
+            log.warn("Карта с id={} не найдена.", cardId);
+            return new NotFoundException("Карта не найдена.");
+        });
     }
 }

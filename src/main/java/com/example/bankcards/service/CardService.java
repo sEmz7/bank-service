@@ -12,4 +12,6 @@ public interface CardService {
     CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto);
 
     void deleteCard(UUID cardId);
+
+    CardDto getById(UUID cardId);
 }

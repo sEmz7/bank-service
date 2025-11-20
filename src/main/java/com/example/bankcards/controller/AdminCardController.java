@@ -32,4 +32,9 @@ public class AdminCardController {
     public void deleteCard(@PathVariable("cardId") UUID cardId) {
         cardService.deleteCard(cardId);
     }
+
+    @GetMapping("/{cardId}")
+    public CardDto getById(@PathVariable("cardId") UUID cardId) {
+        return cardService.getById(cardId);
+    }
 }
