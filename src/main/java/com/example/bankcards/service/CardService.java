@@ -2,7 +2,9 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
+import com.example.bankcards.util.CardStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface CardService {
@@ -14,4 +16,6 @@ public interface CardService {
     void deleteCard(UUID cardId);
 
     CardDto getById(UUID cardId);
+
+    List<CardDto> getAll(int page, int size, CardStatus status);
 }

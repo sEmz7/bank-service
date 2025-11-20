@@ -13,11 +13,15 @@ import com.example.bankcards.util.CardStatus;
 import com.example.bankcards.util.mapper.CardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -62,9 +66,18 @@ public class CardServiceImpl implements CardService {
         cardRepository.deleteById(cardId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CardDto getById(UUID cardId) {
         return cardMapper.toDto(findCardByIdOrThrow(cardId));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CardDto> getAll(int page, int size, CardStatus status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("status"));
+        List<Card> cards = cardRepository.findAllByFilter(pageable, status).getContent();
+        return cards.stream().map(cardMapper::toDto).toList();
     }
 
     private Card findCardByIdOrThrow(UUID cardId) {
