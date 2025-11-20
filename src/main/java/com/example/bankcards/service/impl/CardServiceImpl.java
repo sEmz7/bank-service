@@ -2,6 +2,7 @@ package com.example.bankcards.service.impl;
 
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
+import com.example.bankcards.dto.card.CardTransferDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.ConflictException;
@@ -107,6 +108,50 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
         log.debug("Пользователь запросил блокировку карты. userId={}, cardId={}", user.getId(), cardId);
         return cardMapper.toDto(card);
+    }
+
+    @Override
+    public void transfer(String username, CardTransferDto dto) {
+        Card fromCard = findCardByIdOrThrow(dto.fromCardId());
+        Card toCard = findCardByIdOrThrow(dto.toCardId());
+        User user = findUserByUsernameOrThrow(username);
+
+        if (!fromCard.getOwner().getId().equals(user.getId()) || !toCard.getOwner().getId().equals(user.getId())) {
+            log.warn("Перевод возможен только между своими картами. fromCardId={}, toCardId={}, userId={}",
+                    fromCard.getId(), toCard.getId(), user.getId());
+            throw new ConflictException("Перевод возможен только между своими картами.");
+        }
+
+        if (fromCard.getId().equals(toCard.getId())) {
+            log.warn("Попытка перевода на ту же карту. cardId={}, userId={}", fromCard.getId(), user.getId());
+            throw new ConflictException("Перевод на ту же карту невозможен.");
+        }
+
+        if (!fromCard.getStatus().equals(CardStatus.ACTIVE) || !toCard.getStatus().equals(CardStatus.ACTIVE)) {
+            log.warn("Перевод возможен только между активными картами. fromCardId={}, toCardId={}, userId={}",
+                    fromCard.getId(), toCard.getId(), user.getId());
+            throw new ConflictException("Перевод возможен только между активными картами.");
+        }
+
+        if (dto.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("Некорректная сумма перевода. amount={}, userId={}", dto.amount(), user.getId());
+            throw new ConflictException("Сумма перевода должна быть больше 0.");
+        }
+
+        if (fromCard.getBalance().compareTo(dto.amount()) < 0) {
+            log.warn("Недостаточно средств для перевода. fromCardId={}, balance={}, amount={}, userId={}",
+                    fromCard.getId(), fromCard.getBalance(), dto.amount(), user.getId());
+            throw new ConflictException("Недостаточно средств для перевода.");
+        }
+
+        fromCard.setBalance(fromCard.getBalance().subtract(dto.amount()));
+        toCard.setBalance(toCard.getBalance().add(dto.amount()));
+
+        cardRepository.save(fromCard);
+        cardRepository.save(toCard);
+
+        log.debug("Успешный перевод между картами. fromCardId={}, toCardId={}, amount={}, userId={}",
+                fromCard.getId(), toCard.getId(), dto.amount(), user.getId());
     }
 
     private Card findCardByIdOrThrow(UUID cardId) {
