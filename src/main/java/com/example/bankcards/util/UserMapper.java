@@ -1,6 +1,7 @@
 package com.example.bankcards.util;
 
 import com.example.bankcards.dto.UserCredentialsDto;
+import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.entity.User;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -13,4 +14,6 @@ public interface UserMapper {
 
     @Mapping(target = "password", expression = "java(passwordEncoder.encode(dto.password()))")
     User toEntity(UserCredentialsDto dto, @Context PasswordEncoder passwordEncoder);
+
+    UserDto toDto(User entity);
 }

@@ -10,9 +10,13 @@ import com.example.bankcards.util.UserMapper;
 import com.example.bankcards.util.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -34,6 +38,12 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         log.debug("Пользователь с id={} сохранен.", savedUser.getId());
 
-        return new UserDto(savedUser.getId(), savedUser.getUsername());
+        return userMapper.toDto(savedUser);
+    }
+
+    @Override
+    public List<UserDto> getUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAll(pageable).getContent().stream().map(userMapper::toDto).toList();
     }
 }
