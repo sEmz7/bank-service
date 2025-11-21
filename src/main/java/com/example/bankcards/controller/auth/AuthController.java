@@ -1,6 +1,7 @@
 package com.example.bankcards.controller.auth;
 
 import com.example.bankcards.dto.jwt.JwtAuthDto;
+import com.example.bankcards.dto.jwt.RefreshTokenDto;
 import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.exception.ErrorResponse;
 import com.example.bankcards.service.AuthService;
@@ -38,5 +39,10 @@ public class AuthController {
     @PostMapping("/login")
     public JwtAuthDto logIn(@Valid @RequestBody UserCredentialsDto dto) {
         return authService.logIn(dto);
+    }
+
+    @PostMapping("/refresh")
+    public JwtAuthDto refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
+        return authService.refreshToken(refreshTokenDto.refreshToken());
     }
 }

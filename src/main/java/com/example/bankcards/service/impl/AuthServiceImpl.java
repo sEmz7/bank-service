@@ -36,4 +36,15 @@ public class AuthServiceImpl implements AuthService {
         }
         return jwtService.generateAuthToken(user);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public JwtAuthDto refreshToken(String  refreshToken) {
+        if (refreshToken != null && jwtService.validateJwtToken(refreshToken)) {
+            User user = userRepository.findByUsername(jwtService.getUsernameFromToken(refreshToken))
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+            return jwtService.refreshBaseToken(user, refreshToken);
+        }
+        throw new AuthException("Invalid refresh token");
+    }
 }
