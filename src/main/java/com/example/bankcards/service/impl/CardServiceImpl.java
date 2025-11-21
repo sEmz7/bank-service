@@ -104,6 +104,12 @@ public class CardServiceImpl implements CardService {
             throw new ConflictException("Блокировать карту может только владелец.");
         }
 
+        if(!card.getStatus().equals(CardStatus.ACTIVE)) {
+            log.warn("Запрос на блокировку карты со статусом не ACTIVE. userId={}, cardId={}",
+                    user.getId(), card.getId());
+            throw new ConflictException("Статус карты должен быть ACTIVE");
+        }
+
         card.setStatus(CardStatus.BLOCK_PENDING);
         cardRepository.save(card);
         log.debug("Пользователь запросил блокировку карты. userId={}, cardId={}", user.getId(), cardId);

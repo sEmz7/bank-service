@@ -29,7 +29,7 @@ public class AuthController {
     @Operation(description = "Авторизует пользователя и возвращает токены", summary = "Авторизация")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Пользователь авторизован"),
-            @ApiResponse(responseCode = "400", description = "(BAD REQUEST) Некорректный формат данных body",
+            @ApiResponse(responseCode = "400", description = "(BAD REQUEST) Неверный формат данных",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "(UNAUTHORIZED) Неверный пароль",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -41,6 +41,14 @@ public class AuthController {
         return authService.logIn(dto);
     }
 
+    @Operation(summary = "Обновление jwt токена", description = "Проверяет рефреш токен и выдает новый jwt токен")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "(OK) Токен выдан"),
+            @ApiResponse(responseCode = "400", description = "(BAD REQUEST) Неверный формат данных",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "(UNAUTHORIZED) Неверный рефреш токен",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/refresh")
     public JwtAuthDto refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
         return authService.refreshToken(refreshTokenDto.refreshToken());
