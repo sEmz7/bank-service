@@ -3,7 +3,6 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.jwt.JwtAuthDto;
 import com.example.bankcards.dto.jwt.RefreshTokenDto;
 import com.example.bankcards.dto.user.UserCredentialsDto;
-import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -31,9 +30,6 @@ class AuthControllerTests {
 
     @Autowired
     private JwtService jwtService;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
