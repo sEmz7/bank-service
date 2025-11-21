@@ -1,0 +1,798 @@
+openapi: 3.0.1
+info:
+  title: OpenApi документация для приложения Bank Cards
+servers:
+- url: http://localhost:8080
+  description: Bank service
+paths:
+  /users/cards/transfer:
+    post:
+      tags:
+      - "users: Карты"
+      summary: Перевод средств
+      description: Переводит средства между картами пользователя
+      operationId: transferMoney
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardTransferDto"
+        required: true
+      responses:
+        "409":
+          description: |
+            (CONFLICT) Ошибка перевода.
+            Причины:
+            - Перевод возможен только между своими картами
+            - Перевод на ту же карту невозможен
+            - Перевод возможен только между активными картами
+            - Сумма перевода должна быть больше 0
+            - Недостаточно средств
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: (FORBIDDEN) Доступ запрещён
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Перевод выполнен
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Некорректное тело запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /auth/refresh:
+    post:
+      tags:
+      - Аутентификация
+      summary: Обновление jwt токена
+      description: Проверяет рефреш токен и выдает новый jwt токен
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenDto"
+        required: true
+      responses:
+        "401":
+          description: (UNAUTHORIZED) Неверный рефреш токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Токен выдан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JwtAuthDto"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      tags:
+      - Аутентификация
+      summary: Авторизация
+      description: Авторизует пользователя и возвращает токены
+      operationId: logIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCredentialsDto"
+        required: true
+      responses:
+        "200":
+          description: (OK) Пользователь авторизован
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JwtAuthDto"
+        "404":
+          description: (NOT FOUND) Пользователь на найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный пароль
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/users:
+    get:
+      tags:
+      - "admin: Пользователи"
+      summary: Просмотр всех пользователей
+      description: Просмотр всех пользователей с пагинацией
+      operationId: getUsers
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Пользователи получены
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDto"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - "admin: Пользователи"
+      summary: Создание пользователя админом
+      description: Создает пользователя и сохраняет его в базу данных
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+        required: true
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: (CONFLICT) Пользователь с таким username уже существует
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "201":
+          description: (CREATED) Пользователь создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+      security:
+      - bearerAuth: []
+  /admin/cards/{userId}:
+    post:
+      tags:
+      - "admin: Карты"
+      summary: Создание карты пользователю
+      description: Создает карту и сохраняет в базу данных
+      operationId: createCardForUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: (NOT FOUND) Пользователь не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "201":
+          description: (CREATED) Карта создана
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /users/cards/{cardId}/block:
+    patch:
+      tags:
+      - "users: Карты"
+      summary: Запрос на блокировку карты
+      description: Меняет статус карты на BLOCK_PENDING
+      operationId: blockCardRequest
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: (CONFLICT) Карта неактивна
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Запрос на блокировку создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: (NOT FOUND) Карта не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /admin/cards/{cardId}:
+    get:
+      tags:
+      - "admin: Карты"
+      summary: Получение карты по ID
+      description: Возвращает карту по заданному ID
+      operationId: getById
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Карта получена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: (NOT FOUND) Карта не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - "admin: Карты"
+      summary: Удаление карты
+      description: Удаляет карту
+      operationId: deleteCard
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "204":
+          description: (NO CONTENT) Карта удалена
+        "404":
+          description: (NOT FOUND) Карта не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - "admin: Карты"
+      summary: Обновление статуса карты
+      description: Обновляет статус карты и сохраняет в базу данных
+      operationId: updateCardStatus
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardNewStatusDto"
+        required: true
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Статус карты обновлен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: (NOT FOUND) Карта не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /users/cards:
+    get:
+      tags:
+      - "users: Карты"
+      summary: Получение всех карт пользователя
+      description: Возвращает все карты пользователя с параметрами пагинации и фильтрации
+      operationId: getAllUserCards
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - PENDING
+          - EXPIRED
+          - BLOCK_PENDING
+      - name: expiryDateFrom
+        in: query
+        required: false
+        schema:
+          type: string
+          example: 2025-01-01 12:00:00
+        example: 2025-01-01 12:00:00
+      - name: expiryDateTo
+        in: query
+        required: false
+        schema:
+          type: string
+          example: 2025-01-01 12:00:00
+        example: 2025-01-01 12:00:00
+      - name: last4
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Карты возвращены
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CardDto"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /users/cards/{cardId}:
+    get:
+      tags:
+      - "users: Карты"
+      summary: Получить карту по ID
+      description: Возвращает карту пользователя по её ID.
+      operationId: getUserCardById
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещён
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Карта найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "401":
+          description: (UNAUTHORIZED) Неверный или отсутствующий JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: (NOT FOUND) Карта не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: (CONFLICT) Просмотр чужой карты
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /admin/cards:
+    get:
+      tags:
+      - "admin: Карты"
+      summary: Получение всех карт
+      description: Возвращает все карты с параметрами пагинации и фильтром по статусу
+      operationId: getAllCards
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - PENDING
+          - EXPIRED
+          - BLOCK_PENDING
+      responses:
+        "403":
+          description: (FORBIDDEN) Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: (BAD REQUEST) Неверный формат данных
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: (OK) Карты получены
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CardDto"
+        "401":
+          description: (UNAUTHORIZED) Неверный JWT токен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    CardTransferDto:
+      required:
+      - amount
+      - fromCardId
+      - toCardId
+      type: object
+      properties:
+        fromCardId:
+          type: string
+          description: "ID карты, с которой списываются средства"
+          format: uuid
+          example: 2f16952d-f9bb-458f-ac45-7d8c67109da0
+        toCardId:
+          type: string
+          description: "ID карты, на которую зачисляются средства"
+          format: uuid
+          example: 73bb569b-7e73-47ad-815b-3e5a40c1a6f1
+        amount:
+          type: number
+          description: Сумма перевода (должна быть > 0)
+          example: 250.0
+      description: DTO для перевода средств между картами
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Описание ошибки
+      description: DTO для ошибок
+    RefreshTokenDto:
+      required:
+      - refreshToken
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh токен
+          example: token
+      description: DTO для refresh токена
+    JwtAuthDto:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT токен
+          example: token
+        refreshToken:
+          type: string
+          description: Refresh токен
+          example: token
+      description: DTO для jwt и refresh токенов
+    UserCredentialsDto:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: user
+        password:
+          type: string
+          description: Пароль
+          example: password
+      description: DTO для авторизации пользователя
+    UserCreateDto:
+      required:
+      - password
+      - role
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: user
+        password:
+          type: string
+          description: Пароль
+          example: password
+        role:
+          type: string
+          description: Роль пользователя
+          example: ROLE_USER
+          enum:
+          - ROLE_ADMIN
+          - ROLE_USER
+      description: DTO для создания пользователя
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID пользователя
+          format: uuid
+          example: 2f16952d-f9bb-458f-ac45-7d8c67109da0
+        username:
+          type: string
+          description: Имя пользователя
+          example: username
+      description: DTO для просмотра пользователя
+    CardDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID карты
+          format: uuid
+          example: 2f16952d-f9bb-458f-ac45-7d8c67109da0
+        owner:
+          $ref: "#/components/schemas/UserDto"
+        maskedNumber:
+          type: string
+          description: Замаскированный номер карты (только последние 4 цифры)
+          example: '**** **** **** 1234'
+        expiryDate:
+          type: string
+          description: Дата окончания срока действия карты
+          format: date-time
+        status:
+          type: string
+          description: Статус карты
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - PENDING
+          - EXPIRED
+          - BLOCK_PENDING
+        balance:
+          type: number
+          description: Доступный баланс карты
+          example: 1500.75
+      description: DTO для просмотра карты
+    CardNewStatusDto:
+      required:
+      - status
+      type: object
+      properties:
+        status:
+          type: string
+          description: Новый статус карты
+          example: BLOCK_PENDING
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - PENDING
+          - EXPIRED
+          - BLOCK_PENDING
+      description: DTO для изменения статуса карты
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: JWT аутентификация
+      in: header
+      scheme: bearer
+      bearerFormat: JWT

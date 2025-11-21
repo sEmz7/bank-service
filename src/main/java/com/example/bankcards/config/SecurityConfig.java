@@ -23,6 +23,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private static final String[] WHITELIST = {
             "/v3/api-docs/**",
+            "/v3/api-docs.yaml",
             "/swagger-ui/**",
             "/swagger-ui.html"
     };
