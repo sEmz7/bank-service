@@ -3,6 +3,8 @@ package com.example.bankcards.controller.admin;
 import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "admin: Пользователи")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor

@@ -4,17 +4,25 @@ import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.util.CardStatus;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "admin: Карты")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/admin/cards")
 @RequiredArgsConstructor
+@Validated
 public class AdminCardController {
     private final CardService cardService;
 
@@ -41,8 +49,8 @@ public class AdminCardController {
     }
 
     @GetMapping
-    public List<CardDto> getAllCards(@RequestParam(value = "page", defaultValue = "0") int page,
-                                     @RequestParam(value = "size", defaultValue = "10") int size,
+    public List<CardDto> getAllCards(@PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+                                     @Positive @RequestParam(value = "size", defaultValue = "10") int size,
                                      @RequestParam(value = "status", required = false) CardStatus status) {
         return cardService.getAll(page, size, status);
     }

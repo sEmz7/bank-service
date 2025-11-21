@@ -5,6 +5,8 @@ import com.example.bankcards.dto.card.CardTransferDto;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.util.CardStatus;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "users: Карты")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/users/cards")
 @RequiredArgsConstructor

@@ -1,14 +1,12 @@
 package com.example.bankcards.service.impl;
 
 import com.example.bankcards.dto.user.UserCreateDto;
-import com.example.bankcards.dto.user.UserCredentialsDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.UserService;
 import com.example.bankcards.util.mapper.UserMapper;
-import com.example.bankcards.util.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
