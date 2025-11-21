@@ -11,3 +11,5 @@ spring:
     open-in-view: false
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
+springdoc:
+  override-with-generic-response: false
