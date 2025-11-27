@@ -2,6 +2,12 @@ databaseChangeLog:
   - changeSet:
       id: 1-create-users
       author: semyon
+      preConditions:
+        onFail: MARK_RAN
+        onError: HALT
+        not:
+          tableExists:
+            tableName: users
       changes:
         - createTable:
             tableName: users
@@ -29,9 +35,18 @@ databaseChangeLog:
                   type: VARCHAR(20)
                   constraints:
                     nullable: false
+
   - changeSet:
       id: 2-create-cards
       author: semyon
+      preConditions:
+        onFail: MARK_RAN
+        onError: HALT
+        not:
+          - tableExists:
+              tableName: cards
+        tableExists:
+          tableName: users
       changes:
         - createTable:
             tableName: cards
