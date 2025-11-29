@@ -19,10 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -277,7 +274,7 @@ class CardServiceImplTest {
                 from,
                 to,
                 last4
-        );
+        ).stream().toList();
 
         assertNotNull(result);
         assertEquals(1, result.size());

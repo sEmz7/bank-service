@@ -17,13 +17,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "users: Карты")
@@ -48,17 +48,17 @@ public class UserCardController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public List<CardDto> getAllUserCards(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                  @PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
-                                  @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                  @RequestParam(value = "status", required = false) CardStatus status,
-                                  @RequestParam(value = "expiryDateFrom", required = false)
+    public Page<CardDto> getAllUserCards(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                         @PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+                                         @Positive @RequestParam(value = "size", defaultValue = "10") int size,
+                                         @RequestParam(value = "status", required = false) CardStatus status,
+                                         @RequestParam(value = "expiryDateFrom", required = false)
                                              @Schema(example = "2025-01-01 12:00:00")
                                              @DateTimeFormat(pattern = DATE_FORMAT) LocalDateTime expiryDateFrom,
-                                  @RequestParam(value = "expiryDateTo", required = false)
+                                         @RequestParam(value = "expiryDateTo", required = false)
                                              @Schema(example = "2025-01-01 12:00:00")
                                              @DateTimeFormat(pattern = DATE_FORMAT) LocalDateTime expiryDateTo,
-                                  @RequestParam(value = "last4", required = false) String last4) {
+                                         @RequestParam(value = "last4", required = false) String last4) {
         return cardService.getAllUserCards(userDetails.getUsername(), page, size,
                 status, expiryDateFrom, expiryDateTo, last4);
     }

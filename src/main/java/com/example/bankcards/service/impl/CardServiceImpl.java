@@ -15,6 +15,7 @@ import com.example.bankcards.util.CardStatus;
 import com.example.bankcards.util.mapper.CardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -84,14 +85,14 @@ public class CardServiceImpl implements CardService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
+    public Page<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
                                          LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4) {
         User user = findUserByUsernameOrThrow(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("expiryDate").ascending());
 
-        List<Card> userCards = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
-                expiryDateTo, last4).getContent();
-        return userCards.stream().map(cardMapper::toDto).toList();
+        Page<Card> userCardsPage = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
+                expiryDateTo, last4);
+        return userCardsPage.map(cardMapper::toDto);
     }
 
     @Override
