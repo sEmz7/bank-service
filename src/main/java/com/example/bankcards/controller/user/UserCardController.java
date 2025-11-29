@@ -2,6 +2,7 @@ package com.example.bankcards.controller.user;
 
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardTransferDto;
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.exception.ErrorResponse;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.CardService;
@@ -17,7 +18,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -48,17 +48,17 @@ public class UserCardController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public Page<CardDto> getAllUserCards(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                         @PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
-                                         @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                         @RequestParam(value = "status", required = false) CardStatus status,
-                                         @RequestParam(value = "expiryDateFrom", required = false)
+    public PageResponse<CardDto> getAllUserCards(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                 @PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+                                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size,
+                                                 @RequestParam(value = "status", required = false) CardStatus status,
+                                                 @RequestParam(value = "expiryDateFrom", required = false)
                                              @Schema(example = "2025-01-01 12:00:00")
                                              @DateTimeFormat(pattern = DATE_FORMAT) LocalDateTime expiryDateFrom,
-                                         @RequestParam(value = "expiryDateTo", required = false)
+                                                 @RequestParam(value = "expiryDateTo", required = false)
                                              @Schema(example = "2025-01-01 12:00:00")
                                              @DateTimeFormat(pattern = DATE_FORMAT) LocalDateTime expiryDateTo,
-                                         @RequestParam(value = "last4", required = false) String last4) {
+                                                 @RequestParam(value = "last4", required = false) String last4) {
         return cardService.getAllUserCards(userDetails.getUsername(), page, size,
                 status, expiryDateFrom, expiryDateTo, last4);
     }

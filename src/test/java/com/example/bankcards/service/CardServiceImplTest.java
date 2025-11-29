@@ -274,7 +274,7 @@ class CardServiceImplTest {
                 from,
                 to,
                 last4
-        ).stream().toList();
+        ).content();
 
         assertNotNull(result);
         assertEquals(1, result.size());

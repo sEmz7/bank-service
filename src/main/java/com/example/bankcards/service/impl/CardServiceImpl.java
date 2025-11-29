@@ -3,6 +3,7 @@ package com.example.bankcards.service.impl;
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.dto.card.CardTransferDto;
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.ConflictException;
@@ -85,14 +86,14 @@ public class CardServiceImpl implements CardService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
-                                         LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4) {
+    public PageResponse<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
+                                                 LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4) {
         User user = findUserByUsernameOrThrow(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("expiryDate").ascending());
 
-        Page<Card> userCardsPage = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
-                expiryDateTo, last4);
-        return userCardsPage.map(cardMapper::toDto);
+        Page<CardDto> userCardsPage = cardRepository.findAllUserCards(pageable, user.getId(), status, expiryDateFrom,
+                expiryDateTo, last4).map(cardMapper::toDto);
+        return PageResponse.from(userCardsPage);
     }
 
     @Override

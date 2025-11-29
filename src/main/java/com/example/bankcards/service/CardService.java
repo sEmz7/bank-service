@@ -3,8 +3,8 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
 import com.example.bankcards.dto.card.CardTransferDto;
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.util.CardStatus;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,8 +17,8 @@ public interface CardService {
     CardDto getById(UUID cardId);
     List<CardDto> getAll(int page, int size, CardStatus status);
 
-    Page<CardDto> getAllUserCards(String username, int page, int size, CardStatus status, LocalDateTime expiryDateFrom,
-                                  LocalDateTime expiryDateTo, String last4);
+    PageResponse<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
+                                          LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4);
     CardDto blockCardRequest(UUID cardId, String username);
     void transfer(String username, CardTransferDto dto);
     CardDto getUserCardById(UUID cardId, String username);
