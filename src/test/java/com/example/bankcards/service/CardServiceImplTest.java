@@ -211,7 +211,7 @@ class CardServiceImplTest {
         when(cardMapper.toDto(card)).thenReturn(cardDto);
         when(cardMapper.toDto(another)).thenReturn(anotherDto);
 
-        List<CardDto> result = cardService.getAll(page, size, status);
+        List<CardDto> result = cardService.getAll(page, size, status).content();
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -234,7 +234,7 @@ class CardServiceImplTest {
         when(cardRepository.findAllByFilter(eq(expectedPageable), eq(status)))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        List<CardDto> result = cardService.getAll(page, size, status);
+        List<CardDto> result = cardService.getAll(page, size, status).content();
 
         assertNotNull(result);
         assertTrue(result.isEmpty());

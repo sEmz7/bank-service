@@ -25,6 +25,7 @@ public class Card {
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 
+    @EqualsAndHashCode.Include
     @Column(name = "card_number", nullable = false, unique = true)
     private String cardNumber;
 

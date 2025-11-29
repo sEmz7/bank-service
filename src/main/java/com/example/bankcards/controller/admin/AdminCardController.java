@@ -2,6 +2,7 @@ package com.example.bankcards.controller.admin;
 
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.CardNewStatusDto;
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.exception.ErrorResponse;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.util.CardStatus;
@@ -23,6 +24,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST-контроллер для административных операций над банковскими картами.
+ * <p>
+ * Все эндпоинты контроллера доступны только администраторам и требуют
+ * аутентификации с JWT-токеном.
+ */
 @Tag(name = "admin: Карты")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -32,6 +39,13 @@ import java.util.UUID;
 public class AdminCardController {
     private final CardService cardService;
 
+    /**
+     * Создаёт новую карту для указанного пользователя.
+     * <p>
+     * Карта привязывается к пользователю по его идентификатору и сохраняется в базе данных.
+     * @param userId идентификатор пользователя, которому создаётся карта
+     * @return DTO созданной карты
+     */
     @Operation(summary = "Создание карты пользователю", description = "Создает карту и сохраняет в базу данных")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "(CREATED) Карта создана"),
@@ -50,6 +64,15 @@ public class AdminCardController {
         return cardService.createCardForUser(userId);
     }
 
+    /**
+     * Обновляет статус существующей карты.
+     * <p>
+     * Новый статус передаётся в теле запроса и карта обновляется в базе данных.
+     *
+     * @param cardId идентификатор карты, статус которой нужно изменить
+     * @param dto    DTO с новым статусом карты
+     * @return обновлённая DTO карты
+     */
     @Operation(summary = "Обновление статуса карты", description = "Обновляет статус карты и сохраняет в базу данных")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Статус карты обновлен"),
@@ -67,6 +90,13 @@ public class AdminCardController {
         return cardService.updateCardStatus(cardId, dto);
     }
 
+    /**
+     * Удаляет карту по её идентификатору.
+     * <p>
+     * В случае успешного удаления возвращает статус {@code 204 NO_CONTENT}.
+     *
+     * @param cardId идентификатор карты, подлежащей удалению
+     */
     @Operation(summary = "Удаление карты", description = "Удаляет карту")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "(NO CONTENT) Карта удалена"),
@@ -83,6 +113,12 @@ public class AdminCardController {
         cardService.deleteCard(cardId);
     }
 
+    /**
+     * Возвращает карту по её идентификатору.
+     *
+     * @param cardId идентификатор карты
+     * @return DTO найденной карты
+     */
     @Operation(summary = "Получение карты по ID", description = "Возвращает карту по заданному ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Карта получена"),
@@ -98,6 +134,16 @@ public class AdminCardController {
         return cardService.getById(cardId);
     }
 
+    /**
+     * Возвращает все карты с поддержкой пагинации и фильтрации по статусу.
+     * <p>
+     * Используется для просмотра всех карт.
+     *
+     * @param page   номер страницы
+     * @param size   размер страницы
+     * @param status необязательный фильтр по статусу карты
+     * @return страницы DTO карт
+     */
     @Operation(summary = "Получение всех карт",
             description = "Возвращает все карты с параметрами пагинации и фильтром по статусу")
     @ApiResponses({
@@ -110,9 +156,9 @@ public class AdminCardController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public List<CardDto> getAllCards(@PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
-                                     @Positive @RequestParam(value = "size", defaultValue = "10") int size,
-                                     @RequestParam(value = "status", required = false) CardStatus status) {
+    public PageResponse<CardDto> getAllCards(@PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+                                             @Positive @RequestParam(value = "size", defaultValue = "10") int size,
+                                             @RequestParam(value = "status", required = false) CardStatus status) {
         return cardService.getAll(page, size, status);
     }
 }

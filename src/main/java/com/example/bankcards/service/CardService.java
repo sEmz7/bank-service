@@ -7,7 +7,6 @@ import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.util.CardStatus;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 public interface CardService {
@@ -15,7 +14,7 @@ public interface CardService {
     CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto);
     void deleteCard(UUID cardId);
     CardDto getById(UUID cardId);
-    List<CardDto> getAll(int page, int size, CardStatus status);
+    PageResponse<CardDto> getAll(int page, int size, CardStatus status);
 
     PageResponse<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
                                           LocalDateTime expiryDateFrom, LocalDateTime expiryDateTo, String last4);

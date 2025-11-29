@@ -25,9 +25,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Реализация сервиса работы с банковскими картами.
+ * <p>
+ * Инкапсулирует бизнес-логику создания, обновления, блокировки, перевода средств
+ * и получения информации о картах пользователей.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -37,6 +43,16 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardMapper cardMapper;
 
+    /**
+     * Создаёт новую карту для указанного пользователя.
+     * <p>
+     * Генерирует номер карты, устанавливает срок действия, начальный баланс и статус,
+     * после чего сохраняет карту в базе данных.
+     *
+     * @param userId идентификатор пользователя, для которого создаётся карта
+     * @return DTO созданной карты
+     * @throws NotFoundException если пользователь с указанным идентификатором не найден
+     */
     @Override
     public CardDto createCardForUser(UUID userId) {
         User user = findUserByIdOrThrow(userId);
@@ -55,6 +71,14 @@ public class CardServiceImpl implements CardService {
         return cardMapper.toDto(saved);
     }
 
+    /**
+     * Обновляет статус карты.
+     *
+     * @param cardId идентификатор карты, статус которой нужно изменить
+     * @param dto    DTO с новым статусом карты
+     * @return DTO карты с обновлённым статусом
+     * @throws NotFoundException если карта с указанным идентификатором не найдена
+     */
     @Override
     public CardDto updateCardStatus(UUID cardId, CardNewStatusDto dto) {
         Card card = findCardByIdOrThrow(cardId);
@@ -65,25 +89,65 @@ public class CardServiceImpl implements CardService {
         return cardMapper.toDto(card);
     }
 
+    /**
+     * Удаляет карту по её идентификатору.
+     * <p>
+     *
+     * @param cardId идентификатор карты, подлежащей удалению
+     * @throws NotFoundException если карта с указанным идентификатором не найдена
+     */
     @Override
     public void deleteCard(UUID cardId) {
+        findCardByIdOrThrow(cardId);
         cardRepository.deleteById(cardId);
     }
 
+    /**
+     * Возвращает карту по её идентификатору.
+     *
+     * @param cardId идентификатор карты
+     * @return DTO найденной карты
+     * @throws NotFoundException если карта с указанным идентификатором не найдена
+     */
     @Transactional(readOnly = true)
     @Override
     public CardDto getById(UUID cardId) {
         return cardMapper.toDto(findCardByIdOrThrow(cardId));
     }
 
+    /**
+     * Возвращает список карт с поддержкой пагинации и фильтрации по статусу.
+     * <p>
+     * Используется для административного просмотра всех карт в системе.
+     *
+     * @param page   номер страницы (начиная с 0)
+     * @param size   размер страницы (количество элементов на странице)
+     * @param status необязательный фильтр по статусу карты; если {@code null}, возвращаются карты всех статусов
+     * @return объект {@link PageResponse} с DTO карт и метаданными пагинации
+     */
     @Transactional(readOnly = true)
     @Override
-    public List<CardDto> getAll(int page, int size, CardStatus status) {
+    public PageResponse<CardDto> getAll(int page, int size, CardStatus status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("status"));
-        List<Card> cards = cardRepository.findAllByFilter(pageable, status).getContent();
-        return cards.stream().map(cardMapper::toDto).toList();
+        Page<CardDto> cardsPage = cardRepository.findAllByFilter(pageable, status).map(cardMapper::toDto);
+        return PageResponse.from(cardsPage);
     }
 
+    /**
+     * Возвращает страницу карт конкретного пользователя с учетом фильтров.
+     * <p>
+     * Поддерживает фильтрацию по статусу, диапазону дат окончания срока действия и последним четырём цифрам.
+     *
+     * @param username        имя пользователя, чьи карты запрашиваются
+     * @param page            номер страницы (начиная с 0)
+     * @param size            размер страницы
+     * @param status          необязательный фильтр по статусу карты
+     * @param expiryDateFrom  нижняя граница срока действия карты (включительно); может быть {@code null}
+     * @param expiryDateTo    верхняя граница срока действия карты (включительно); может быть {@code null}
+     * @param last4           необязательный фильтр по последним четырём цифрам номера карты
+     * @return объект {@link PageResponse} с DTO карт и метаданными пагинации
+     * @throws NotFoundException если пользователь с указанным именем не найден
+     */
     @Transactional(readOnly = true)
     @Override
     public PageResponse<CardDto> getAllUserCards(String username, int page, int size, CardStatus status,
@@ -96,6 +160,19 @@ public class CardServiceImpl implements CardService {
         return PageResponse.from(userCardsPage);
     }
 
+    /**
+     * Создаёт запрос на блокировку карты от имени пользователя.
+     * <p>
+     * Доступен только владельцу карты и только для карт со статусом {@link CardStatus#ACTIVE}.
+     * В случае успешного запроса статус карты изменяется на {@link CardStatus#BLOCK_PENDING}.
+     *
+     * @param cardId   идентификатор карты, для которой запрашивается блокировка
+     * @param username имя пользователя, от имени которого отправляется запрос
+     * @return DTO карты с обновлённым статусом
+     * @throws NotFoundException   если пользователь или карта не найдены
+     * @throws ConflictException   если карту пытается заблокировать не владелец
+     * или текущий статус карты не {@link CardStatus#ACTIVE}
+     */
     @Override
     public CardDto blockCardRequest(UUID cardId, String username) {
         User user = findUserByUsernameOrThrow(username);
@@ -118,6 +195,18 @@ public class CardServiceImpl implements CardService {
         return cardMapper.toDto(card);
     }
 
+    /**
+     * Выполняет перевод средств между двумя картами одного пользователя.
+     * <p>
+     * Перевод возможен только между разными картами, принадлежащими одному пользователю,
+     * со статусом {@link CardStatus#ACTIVE} и при наличии достаточного баланса на карте-источнике.
+     *
+     * @param username имя пользователя, от имени которого выполняется перевод
+     * @param dto      DTO с параметрами перевода (карта-источник, карта-получатель, сумма)
+     * @throws NotFoundException   если пользователь или одна из карт не найдены
+     * @throws ConflictException   если карты не принадлежат пользователю, совпадают,
+     *                             имеют некорректный статус или недостаточно средств/некорректная сумма
+     */
     @Override
     public void transfer(String username, CardTransferDto dto) {
         Card fromCard = findCardByIdOrThrow(dto.fromCardId());
@@ -162,6 +251,17 @@ public class CardServiceImpl implements CardService {
                 fromCard.getId(), toCard.getId(), dto.amount(), user.getId());
     }
 
+    /**
+     * Возвращает карту пользователя по идентификатору, проверяя права доступа.
+     * <p>
+     * Карта может быть просмотрена только её владельцем.
+     *
+     * @param cardId   идентификатор карты
+     * @param username имя пользователя, запрашивающего карту
+     * @return DTO карты
+     * @throws NotFoundException   если пользователь или карта не найдены
+     * @throws ConflictException   если пользователь пытается просмотреть чужую карту
+     */
     @Transactional(readOnly = true)
     @Override
     public CardDto getUserCardById(UUID cardId, String username) {
