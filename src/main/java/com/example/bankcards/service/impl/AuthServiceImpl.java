@@ -14,6 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Реализация сервиса аутентификации пользователей.
+ * <p>
+ * Отвечает за проверку пользовательских учётных данных, генерацию JWT-токенов
+ * и обновление access token с помощью refresh token.
+ */
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +29,21 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Выполняет авторизацию пользователя по логину и паролю.
+     * <p>
+     * Метод:
+     * <ol>
+     *     <li>Проверяет существование пользователя по username;</li>
+     *     <li>Сравнивает предоставленный пароль с хешированным паролем в базе данных;</li>
+     *     <li>В случае успеха генерирует пару токенов — access token и refresh token.</li>
+     * </ol>
+     *
+     * @param dto DTO с логином и паролем
+     * @return объект {@link JwtAuthDto} с парой JWT-токенов
+     * @throws NotFoundException если пользователь с указанным логином не найден
+     * @throws AuthException     если предоставлен неверный пароль
+     */
     @Transactional(readOnly = true)
     @Override
     public JwtAuthDto logIn(UserCredentialsDto dto) {
@@ -37,6 +58,23 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateAuthToken(user);
     }
 
+    /**
+     * Обновляет JWT access token с использованием refresh token.
+     * <p>
+     * Логика обновления:
+     * <ol>
+     *     <li>Проверка, что refresh token не равен null;</li>
+     *     <li>Валидация refresh token методом {@link JwtService#validateJwtToken(String)};</li>
+     *     <li>Извлечение username из токена;</li>
+     *     <li>Поиск пользователя в базе;</li>
+     *     <li>Генерация нового access token.</li>
+     * </ol>
+     *
+     * @param refreshToken действительный refresh token
+     * @return новый объект {@link JwtAuthDto} с обновлёнными токенами
+     * @throws AuthException     если refresh token недействителен или отсутствует
+     * @throws NotFoundException если пользователь, которому принадлежит токен, не найден
+     */
     @Transactional(readOnly = true)
     @Override
     public JwtAuthDto refreshToken(String  refreshToken) {

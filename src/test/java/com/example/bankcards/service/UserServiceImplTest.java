@@ -130,7 +130,7 @@ public class UserServiceImplTest {
         when(userMapper.toDto(user)).thenReturn(userDto);
         when(userMapper.toDto(user2)).thenReturn(userDto2);
 
-        List<UserDto> result = userService.getUsers(page, size);
+        List<UserDto> result = userService.getUsers(page, size).content();
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -151,7 +151,7 @@ public class UserServiceImplTest {
         when(userRepository.findAll(any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        List<UserDto> result = userService.getUsers(page, size);
+        List<UserDto> result = userService.getUsers(page, size).content();
 
         assertNotNull(result);
         assertTrue(result.isEmpty());

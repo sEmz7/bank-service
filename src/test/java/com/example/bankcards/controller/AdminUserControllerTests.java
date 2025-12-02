@@ -1,12 +1,14 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.jwt.JwtAuthDto;
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtService;
 import com.example.bankcards.util.UserRole;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -131,9 +133,10 @@ class AdminUserControllerTests {
                 .getResponse()
                 .getContentAsString();
 
-        UserDto[] users = objectMapper.readValue(response, UserDto[].class);
+        PageResponse<UserDto> users = objectMapper.readValue(response, new TypeReference<>() {
+        });
 
         assertNotNull(users);
-        assertEquals(2, users.length);
+        assertEquals(2, users.content().size());
     }
 }

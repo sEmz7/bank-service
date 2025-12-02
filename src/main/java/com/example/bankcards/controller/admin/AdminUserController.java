@@ -1,5 +1,6 @@
 package com.example.bankcards.controller.admin;
 
+import com.example.bankcards.dto.page.PageResponse;
 import com.example.bankcards.dto.user.UserCreateDto;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.exception.ErrorResponse;
@@ -19,8 +20,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+/**
+ * REST-контроллер для административных операций с пользователями.
+ * <p>
+ * Предоставляет возможности создания новых пользователей и получения списка существующих.
+ * Все эндпоинты доступны только администраторам и требуют JWT-аутентификации.
+ */
 @Tag(name = "admin: Пользователи")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -30,6 +35,15 @@ import java.util.List;
 public class AdminUserController {
     private final UserService userService;
 
+    /**
+     * Создаёт нового пользователя от имени администратора.
+     * <p>
+     * Используется для ручного добавления пользователей в систему.
+     * В случае конфликта username выбрасывается ошибка {@code 409 CONFLICT}.
+     *
+     * @param dto данные для создания нового пользователя
+     * @return DTO созданного пользователя
+     */
     @Operation(summary = "Создание пользователя админом",
             description = "Создает пользователя и сохраняет его в базу данных")
     @ApiResponses({
@@ -49,6 +63,15 @@ public class AdminUserController {
         return userService.create(dto);
     }
 
+    /**
+     * Возвращает страницу пользователей.
+     * <p>
+     * Используется администраторами для просмотра всех пользователей системы.
+     *
+     * @param page номер страницы (начиная с 0)
+     * @param size количество элементов на странице
+     * @return страницу с DTO пользователей
+     */
     @Operation(summary = "Просмотр всех пользователей", description = "Просмотр всех пользователей с пагинацией")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Пользователи получены"),
@@ -60,8 +83,8 @@ public class AdminUserController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public List<UserDto> getUsers(@PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
-                                  @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
+    public PageResponse<UserDto> getUsers(@PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+                                          @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         return userService.getUsers(page, size);
     }
 }

@@ -26,6 +26,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * REST-контроллер для работы пользователя со своими банковскими картами.
+ * <p>
+ * Предоставляет операции просмотра карт, запроса на блокировку и перевода средств
+ * между собственными картами. Все эндпоинты требуют аутентификации по JWT.
+ */
 @Tag(name = "users: Карты")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -36,6 +42,20 @@ public class UserCardController {
     private final CardService cardService;
     private final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
+    /**
+     * Возвращает страницу карт текущего пользователя с фильтрацией.
+     * <p>
+     * Поддерживает фильтрацию по статусу, диапазону дат окончания срока действия
+     * и последним четырём цифрам номера карты.
+     *
+     * @param page            номер страницы (начиная с 0)
+     * @param size            размер страницы (количество элементов на странице)
+     * @param status          необязательный фильтр по статусу карты
+     * @param expiryDateFrom  необязательная нижняя граница срока действия карты (включительно)
+     * @param expiryDateTo    необязательная верхняя граница срока действия карты (включительно)
+     * @param last4           необязательный фильтр по последним четырём цифрам номера карты
+     * @return страничный ответ с DTO карт текущего пользователя
+     */
     @Operation(summary = "Получение всех карт пользователя",
             description = "Возвращает все карты пользователя с параметрами пагинации и фильтрации")
     @ApiResponses({
@@ -63,6 +83,16 @@ public class UserCardController {
                 status, expiryDateFrom, expiryDateTo, last4);
     }
 
+    /**
+     * Создаёт запрос на блокировку карты от имени текущего пользователя.
+     * <p>
+     * Доступно только для карт, принадлежащих пользователю и находящихся
+     * в статусе {@link CardStatus#ACTIVE}.
+     * В случае успеха статус карты изменяется на {@code BLOCK_PENDING}.
+     *
+     * @param cardId      идентификатор карты, для которой запрашивается блокировка
+     * @return DTO карты с обновлённым статусом
+     */
     @Operation(summary = "Запрос на блокировку карты", description = "Меняет статус карты на BLOCK_PENDING")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Запрос на блокировку создан"),
@@ -81,6 +111,14 @@ public class UserCardController {
         return cardService.blockCardRequest(cardId, userDetails.getUsername());
     }
 
+    /**
+     * Выполняет перевод средств между картами текущего пользователя.
+     * <p>
+     * Перевод возможен только между разными картами, принадлежащими пользователю,
+     * при условии, что обе карты активны и на карте-источнике достаточно средств.
+     *
+     * @param dto         параметры перевода (карта-источник, карта-получатель, сумма)
+     */
     @Operation(summary = "Перевод средств", description = "Переводит средства между картами пользователя")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Перевод выполнен"),
@@ -107,6 +145,13 @@ public class UserCardController {
         cardService.transfer(userDetails.getUsername(), dto);
     }
 
+    /**
+     * Возвращает карту текущего пользователя по её идентификатору.
+     * <p>
+     *
+     * @param cardId      идентификатор карты
+     * @return DTO карты
+     */
     @Operation(summary = "Получить карту по ID", description = "Возвращает карту пользователя по её ID.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "(OK) Карта найдена",
