@@ -110,16 +110,16 @@ JWT_SECRET=rOmVtoPS7FaHfgf8vhswtsqbiLtWT5QUJOv9OqwTex87hJ7FEVBGNAfgSWj0Lzi2
 docker compose up -d --build
 ```
 ---
-## 🧩 Документация
+## 🧩 Спецификация
 
 После запуска:
-### 🔥 Swagger UI:
+### Swagger UI:
 
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
 
-### 🔥 OpenAPI YAML:
+### OpenAPI YAML:
 
 ```
 http://localhost:8080/v3/api-docs.yaml
